@@ -1,0 +1,19 @@
+mkdir eth
+cd eth
+npm install --save-dev hardhat@2.22.15
+npx hardhat --init
+
+
+Network Name:Hardhat Local
+RCP URL:https://127.0.0.1:8545
+chain ID 31337
+currency Symbol:ETH
+
+save
+
+add wallet
+
+add account
+past the address 
+
+send send 1
