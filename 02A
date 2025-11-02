@@ -1,0 +1,60 @@
+mkdir assignment_no2
+npm init -y
+npm install --save-dev hardhat@2.22.15
+npx hardhat init
+npx hardhat node
+
+npx hardhat run deploy.js --network localhost
+npx hardhat run interact.js --network localhost
+
+
+
+
+
+deploy.js
+const hre = require("hardhat");
+
+async function main() {
+  const WavePortal = await hre.ethers.getContractFactory("WavePortal");
+  console.log(" Deploying WavePortal...");
+
+  const wavePortal = await WavePortal.deploy();
+  await wavePortal.waitForDeployment();
+
+  const address = await wavePortal.getAddress();
+  console.log(" WavePortal deployed to:", address);
+
+  // Interact with the contract
+  const tx = await wavePortal.wave();
+  await tx.wait();
+  const total = await wavePortal.getTotalWaves();
+  console.log("👋 Total Waves:", total.toString());
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+
+
+
+
+interact.js
+
+
+const hre = require("hardhat");
+
+async function main() {
+  const address = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"; 
+  const WavePortal = await hre.ethers.getContractFactory("WavePortal");
+  const wavePortal = WavePortal.attach(address);
+
+  await wavePortal.wave();
+  const total = await wavePortal.getTotalWaves();
+  console.log("Total Waves Now:", total.toString());
+}
+
+main().catch(console.error);
+
