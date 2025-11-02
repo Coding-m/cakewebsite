@@ -26,4 +26,9 @@ contract WavePortal {
     function getTotalWaves() public view returns (uint256) {
         return totalWaves;
     }
+
+
+// go to https://cloud.google.com/application/web3/faucet/ethereum/sepolia
+add it and just click verify and deploy
+
 }
