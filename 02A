@@ -10,51 +10,99 @@ npx hardhat run interact.js --network localhost
 
 
 
+//deploy.js
 
-deploy.js
-const hre = require("hardhat");
-
-async function main() {
+const main = async () => {
+  const [owner] = await hre.ethers.getSigners();
   const WavePortal = await hre.ethers.getContractFactory("WavePortal");
-  console.log(" Deploying WavePortal...");
 
+  console.log("Deploying WavePortal...");
   const wavePortal = await WavePortal.deploy();
   await wavePortal.waitForDeployment();
 
-  const address = await wavePortal.getAddress();
-  console.log(" WavePortal deployed to:", address);
+  console.log("WavePortal deployed to:", await wavePortal.getAddress());
 
-  // Interact with the contract
-  const tx = await wavePortal.wave();
-  await tx.wait();
-  const total = await wavePortal.getTotalWaves();
-  console.log("👋 Total Waves:", total.toString());
-}
+  // ✅ Send a wave with a message
+  let waveTxn = await wavePortal.wave("Hello from Hardhat!");
+  await waveTxn.wait();
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
+  console.log("Wave sent!");
+};
+
+const runMain = async () => {
+  try {
+    await main();
+    process.exit(0);
+  } catch (error) {
+    console.log(error);
     process.exit(1);
-  });
+  }
+};
+
+runMain();
 
 
 
-
-interact.js
-
+// interact.js 
 
 const hre = require("hardhat");
 
 async function main() {
-  const address = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"; 
+  // connect to the deployed contract
+  const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"; // use your actual deployed address
   const WavePortal = await hre.ethers.getContractFactory("WavePortal");
-  const wavePortal = WavePortal.attach(address);
+  const wavePortal = await WavePortal.attach(contractAddress);
 
-  await wavePortal.wave();
+  console.log("Interacting with contract at:", contractAddress);
+
+  // ✅ Send a wave with a message
+  const waveTxn = await wavePortal.wave("Hey there! This is my wave 🌊");
+  await waveTxn.wait();
+  console.log("Wave transaction mined!");
+
+  // ✅ Get total waves
   const total = await wavePortal.getTotalWaves();
-  console.log("Total Waves Now:", total.toString());
+  console.log("Total waves so far:", total.toString());
+
+  // ✅ Fetch all waves
+  const allWaves = await wavePortal.getAllWaves();
+  console.log("All Waves:", allWaves);
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
 
+
+//WavePortal.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract WavePortal {
+    uint256 totalWaves;
+
+    struct Wave {
+        address waver;
+        string message;
+        uint256 timestamp;
+    }
+
+    Wave[] waves;
+
+    event NewWave(address indexed from, uint256 timestamp, string message);
+
+    function wave(string memory _message) public {
+        totalWaves += 1;
+        waves.push(Wave(msg.sender, _message, block.timestamp));
+        emit NewWave(msg.sender, block.timestamp, _message);
+    }
+
+    function getAllWaves() public view returns (Wave[] memory) {
+        return waves;
+    }
+    function getTotalWaves() public view returns (uint256) {
+        return totalWaves;
+    }
+}
